@@ -79,14 +79,14 @@
 
 
 
-<meta name="description" content="算法程序交叉编译及移植开发板操作指导一、服务器描述：a、ARM(aarch64)交叉编译服务器：ssh root@10.10.8.168 -p 60140（psw：root） b、后处理算法编译服务器(带GPU)：ssh root@10.10.8.168 -p 60150（psw：root） c、开发板：ssh firefly@10.10.8.250（psw：firefly） 二、编译步骤：一、在">
+<meta name="description" content="算法程序交叉编译及移植开发板操作指导一、服务器描述：a、ARM(aarch64)交叉编译服务器：ssh root@10.10.8.168 -p 60140（psw：root） b、后处理算法编译服务器(带GPU)：ssh root@10.10.8.168 -p 60150（psw：root） c、开发板：ssh firefly@10.10.8.250（psw：firefly）">
 <meta property="og:type" content="article">
 <meta property="og:title" content="算法程序Neon优化">
 <meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2019&#x2F;11&#x2F;27&#x2F;%E7%AE%97%E6%B3%95%E7%A8%8B%E5%BA%8FNeon%E4%BC%98%E5%8C%96&#x2F;index.html">
 <meta property="og:site_name" content="zxnie个人博客">
-<meta property="og:description" content="算法程序交叉编译及移植开发板操作指导一、服务器描述：a、ARM(aarch64)交叉编译服务器：ssh root@10.10.8.168 -p 60140（psw：root） b、后处理算法编译服务器(带GPU)：ssh root@10.10.8.168 -p 60150（psw：root） c、开发板：ssh firefly@10.10.8.250（psw：firefly） 二、编译步骤：一、在">
+<meta property="og:description" content="算法程序交叉编译及移植开发板操作指导一、服务器描述：a、ARM(aarch64)交叉编译服务器：ssh root@10.10.8.168 -p 60140（psw：root） b、后处理算法编译服务器(带GPU)：ssh root@10.10.8.168 -p 60150（psw：root） c、开发板：ssh firefly@10.10.8.250（psw：firefly）">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-11-06T08:06:27.214Z">
+<meta property="og:updated_time" content="2019-11-27T10:11:00.648Z">
 <meta name="twitter:card" content="summary">
 
 
@@ -289,7 +289,7 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-11-27T17:50:29+08:00">
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-11-27T18:11:00+08:00">
                 2019-11-27
               </time>
             
@@ -330,6 +330,8 @@
         <h1 id="算法程序交叉编译及移植开发板操作指导"><a href="#算法程序交叉编译及移植开发板操作指导" class="headerlink" title="算法程序交叉编译及移植开发板操作指导"></a>算法程序交叉编译及移植开发板操作指导</h1><h3 id="一、服务器描述："><a href="#一、服务器描述：" class="headerlink" title="一、服务器描述："></a>一、服务器描述：</h3><p>a、ARM(aarch64)交叉编译服务器：ssh <a href="mailto:root@10.10.8.168" target="_blank" rel="noopener">root@10.10.8.168</a> -p 60140（psw：root）</p>
 <p>b、后处理算法编译服务器(带GPU)：ssh <a href="mailto:root@10.10.8.168" target="_blank" rel="noopener">root@10.10.8.168</a> -p 60150（psw：root）</p>
 <p>c、开发板：ssh <a href="mailto:firefly@10.10.8.250" target="_blank" rel="noopener">firefly@10.10.8.250</a>（psw：firefly）</p>
+<a id="more"></a>
+
 <h3 id="二、编译步骤："><a href="#二、编译步骤：" class="headerlink" title="二、编译步骤："></a>二、编译步骤：</h3><p>一、在<strong>b</strong>服务器编译后处理代码程序，执行程序将调用GPU运算模块的结果数据导出到文件，然后将GPU处理相关模块代码注释掉，并在程序初始化时从导出的数据文件中加载GPU运算数据；将程序代码scp拷贝到服务器<strong>a</strong>进行交叉编译；</p>
 <p>二、在<strong>a</strong>服务器上对Neon10进行交叉编译，生成libNE10.a库文件；(可以在CMakelist.txt和 GNUlinux_config.cmake文件中配置不同的编译属性，如生成静态或者动态库等)</p>
 <figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mkdir build &amp;&amp; cd build</span><br><span class="line"><span class="keyword">export</span> NE10_LINUX_TARGET_ARCH=aarch64 <span class="comment">#设置目标体系结构,也可以为armv7（目前开发板用aarch64）</span></span><br><span class="line">cmake -DCMAKE_TOOLCHAIN_FILE=../GNUlinux_config.cmake ..</span><br><span class="line">make -j6</span><br></pre></td></tr></table></figure>
