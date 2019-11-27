@@ -260,6 +260,375 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/27/%E7%AE%97%E6%B3%95%E7%A8%8B%E5%BA%8FNeon%E4%BC%98%E5%8C%96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zxnie">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/head.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="zxnie个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/11/27/%E7%AE%97%E6%B3%95%E7%A8%8B%E5%BA%8FNeon%E4%BC%98%E5%8C%96/" itemprop="url">算法程序Neon优化</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-11-27T17:50:29+08:00">
+                2019-11-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="算法程序交叉编译及移植开发板操作指导"><a href="#算法程序交叉编译及移植开发板操作指导" class="headerlink" title="算法程序交叉编译及移植开发板操作指导"></a>算法程序交叉编译及移植开发板操作指导</h1><h3 id="一、服务器描述："><a href="#一、服务器描述：" class="headerlink" title="一、服务器描述："></a>一、服务器描述：</h3><p>a、ARM(aarch64)交叉编译服务器：ssh <a href="mailto:root@10.10.8.168" target="_blank" rel="noopener">root@10.10.8.168</a> -p 60140（psw：root）</p>
+<p>b、后处理算法编译服务器(带GPU)：ssh <a href="mailto:root@10.10.8.168" target="_blank" rel="noopener">root@10.10.8.168</a> -p 60150（psw：root）</p>
+<p>c、开发板：ssh <a href="mailto:firefly@10.10.8.250" target="_blank" rel="noopener">firefly@10.10.8.250</a>（psw：firefly）</p>
+<h3 id="二、编译步骤："><a href="#二、编译步骤：" class="headerlink" title="二、编译步骤："></a>二、编译步骤：</h3><p>一、在<strong>b</strong>服务器编译后处理代码程序，执行程序将调用GPU运算模块的结果数据导出到文件，然后将GPU处理相关模块代码注释掉，并在程序初始化时从导出的数据文件中加载GPU运算数据；将程序代码scp拷贝到服务器<strong>a</strong>进行交叉编译；</p>
+<p>二、在<strong>a</strong>服务器上对Neon10进行交叉编译，生成libNE10.a库文件；(可以在CMakelist.txt和 GNUlinux_config.cmake文件中配置不同的编译属性，如生成静态或者动态库等)</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mkdir build &amp;&amp; cd build</span><br><span class="line"><span class="keyword">export</span> NE10_LINUX_TARGET_ARCH=aarch64 <span class="comment">#设置目标体系结构,也可以为armv7（目前开发板用aarch64）</span></span><br><span class="line">cmake -DCMAKE_TOOLCHAIN_FILE=../GNUlinux_config.cmake ..</span><br><span class="line">make -j6</span><br></pre></td></tr></table></figure>
+
+<p>三、在算法程序中引用Neon10库文件，并进行交叉编译；</p>
+<p>引用方法：在CMakeList中添加引用libNE10.a静态库文件，并添加相关头文件包含路径，然后在引用的源代码cpp中包含”NE10.h”头文件即可调用对应的接口方法。引用实例如下所示：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"NE10.h"</span> </span></span><br><span class="line"></span><br><span class="line">main(<span class="keyword">void</span>)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">ne10_int32_t</span> i;</span><br><span class="line">	<span class="keyword">ne10_float32_t</span> thesrc[<span class="number">5</span>];</span><br><span class="line">	<span class="keyword">ne10_float32_t</span> thecst;</span><br><span class="line">	<span class="keyword">ne10_float32_t</span> thedst1[<span class="number">5</span>];</span><br><span class="line">	<span class="keyword">ne10_float32_t</span> thedst2[<span class="number">5</span>];</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; <span class="number">5</span>; i++)</span><br><span class="line">    &#123;</span><br><span class="line">        thesrc[i] = (<span class="keyword">ne10_float32_t</span>)rand()/RAND_MAX*<span class="number">5.0f</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    thecst = (<span class="keyword">ne10_float32_t</span>) rand()/RAND_MAX*<span class="number">5.0f</span>;</span><br><span class="line">    ne10_addc_float_c( thedst1 , thesrc, thecst, <span class="number">5</span> );</span><br><span class="line">    ne10_addc_float_neon( thedst2 , thesrc, thecst, <span class="number">5</span> );</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"==========end=========\n"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>四、将交叉编译完成的算法程序scp拷贝到<strong>c</strong>开发板上进行执行；</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/27/%E6%88%91%E7%9A%84%E5%8D%9A%E5%AE%A2-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zxnie">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/head.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="zxnie个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/11/27/%E6%88%91%E7%9A%84%E5%8D%9A%E5%AE%A2-1/" itemprop="url">我的博客</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-11-27T17:49:14+08:00">
+                2019-11-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/27/%E6%88%91%E7%9A%84%E5%8D%9A%E5%AE%A2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="zxnie">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/head.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="zxnie个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/11/27/%E6%88%91%E7%9A%84%E5%8D%9A%E5%AE%A2/" itemprop="url">我的博客</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-11-27T17:49:00+08:00">
+                2019-11-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/27/hello-world/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -429,7 +798,7 @@
               
                 <a href="/archives/%20%7C%7C%20archive">
               
-                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-count">4</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
